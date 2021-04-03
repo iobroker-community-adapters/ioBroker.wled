@@ -19,7 +19,7 @@ const bonjour = require('bonjour')(); // load Bonjour library
 let polling = null; // Polling timer
 let scan_timer = null; // reload = false;
 let timeout = null; // Refresh delay for send state
-const stateExpire = {}, warnMessages = {}, initialse = {}; // Timers to reset online state of device
+const stateExpire = {}, warnMessages = {}, initialise = {}; // Timers to reset online state of device
 
 const disableSentry = false; // Ensure to set to true during development !
 
@@ -422,23 +422,25 @@ class Wled extends utils.Adapter {
 
 			// Get effects (if not already in memory
 			if (!this.effects[device_id]){
-				initialse[device_id] = true;
+				initialise[device_id] = true;
 				const effects = await this.getAPI('http://' + index + '/json/eff');
-				if (!effects) {
-					this.log.debug('Effects API call error, will retry in scheduled interval !');
-				} else {
-					this.log.debug('Effects Data received from WLED device ' + JSON.stringify(effects));
-					// Store effects array
-					this.effects[device_id] = {};
-					for (const i in effects) {
-						this.effects[device_id][i] = effects[i];
-					}
-				}
+        if (this.IsJsonString(effects)) {        // arteck
+  				if (!effects) {
+  					this.log.debug('Effects API call error, will retry in scheduled interval !');
+  				} else {
+  					this.log.debug('Effects Data received from WLED device ' + JSON.stringify(effects));
+  					// Store effects array
+  					this.effects[device_id] = {};
+  					for (const i in effects) {
+  						this.effects[device_id][i] = effects[i];
+  					}
+  				}
+        }
 			}
 
 			// Get pallets (if not already in memory
 			if (!this.palettes[device_id]) {
-				initialse[device_id] = true;
+				initialise[device_id] = true;
 				const pallets = await this.getAPI('http://' + index + '/json/pal');
 				if (!pallets) {
 					this.log.debug('Effects API call error, will retry in scheduled interval !');
@@ -832,6 +834,15 @@ class Wled extends utils.Adapter {
 			console.error(`Sentry disabled, error catched : ${msg}`);
 		}
 	}
+
+  IsJsonString(str) {
+    try {
+        JSON.parse(str);
+    } catch (e) {
+        return false;
+    }
+    return true;
+  }
 
 }
 
