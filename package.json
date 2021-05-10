@@ -30,7 +30,7 @@
     "@iobroker/adapter-core": "^2.4.0",
     "axios": "^0.21.0",
     "bonjour": "^3.5.0",
-    "hex-rgb": "^4.1.0",
+    "hex-rgb": "^5.0.0",
     "rgb-hex": "^3.0.0"
   },
   "devDependencies": {
