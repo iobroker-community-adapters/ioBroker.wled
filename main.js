@@ -19,7 +19,7 @@ const bonjour = require('bonjour')(); // load Bonjour library
 let polling = null; // Polling timer
 let scan_timer = null; // reload = false;
 let timeout = null; // Refresh delay for send state
-const stateExpire = {}, warnMessages = {}, initialse = {}; // Timers to reset online state of device
+const stateExpire = {}, warnMessages = {}, initialise = {}; // Timers to reset online state of device
 
 const disableSentry = false; // Ensure to set to true during development !
 
@@ -413,8 +413,8 @@ class Wled extends utils.Adapter {
 
 				} else {
 					for (const y in deviceInfo[i]) {
-						this.log.debug('State created : ' + y + ' : ' + JSON.stringify(deviceInfo[i][y]));
-						await this.create_state(device_id + '._info.' + i + '.' + y, y, deviceInfo[i][y]);
+						this.log.debug(`State created : ${y} : ${JSON.stringify(deviceInfo[i][y])}`);
+						await this.create_state(`${device_id}._info.${i}.${y}`, y, deviceInfo[i][y]);
 					}
 				}
 
@@ -422,7 +422,7 @@ class Wled extends utils.Adapter {
 
 			// Get effects (if not already in memory
 			if (!this.effects[device_id]){
-				initialse[device_id] = true;
+				initialise[device_id] = true;
 				const effects = await this.getAPI('http://' + index + '/json/eff');
 				if (!effects) {
 					this.log.debug('Effects API call error, will retry in scheduled interval !');
@@ -438,7 +438,7 @@ class Wled extends utils.Adapter {
 
 			// Get pallets (if not already in memory
 			if (!this.palettes[device_id]) {
-				initialse[device_id] = true;
+				initialise[device_id] = true;
 				const pallets = await this.getAPI('http://' + index + '/json/pal');
 				if (!pallets) {
 					this.log.debug('Effects API call error, will retry in scheduled interval !');
@@ -761,7 +761,7 @@ class Wled extends utils.Adapter {
 			// Set value to state including expiration time
 			if (value !== null || value !== undefined) {
 				await this.setStateChangedAsync(stateName, {
-					val: value,
+					val: typeof value === 'object' ? JSON.stringify(value) : value, // real objects are not allowed
 					ack: true,
 				});
 			}
@@ -820,14 +820,14 @@ class Wled extends utils.Adapter {
 	sendSentry(msg) {
 
 		if (!disableSentry) {
-			this.log.info(`[Error catched and send to Sentry, thank you collaborating!] error: ${msg}`);
 			if (this.supportsFeature && this.supportsFeature('PLUGINS')) {
 				const sentryInstance = this.getPluginInstance('sentry');
 				if (sentryInstance) {
+					this.log.info(`[Error caught and sent to Sentry, thank you for collaborating!] error: ${msg}`);
 					sentryInstance.getSentryObject().captureException(msg);
 				}
 			}
-		}else {
+		} else {
 			this.log.error(`Sentry disabled, error catched : ${msg}`);
 			console.error(`Sentry disabled, error catched : ${msg}`);
 		}
